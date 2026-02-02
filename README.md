@@ -36,7 +36,7 @@ SkillGate acts as a **security gate** that:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/skillgate.git
+git clone https://github.com/yourusername/skillgate.git](https://github.com/cawa102/SkillsGate.git
 cd skillgate
 
 # Install dependencies
