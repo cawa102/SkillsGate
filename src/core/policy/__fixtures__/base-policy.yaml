@@ -1,0 +1,20 @@
+version: "1.0.0"
+name: "base-policy"
+thresholds:
+  block: 30
+  warn: 60
+critical_block:
+  - base_critical_rule
+rules:
+  base_rule:
+    severity: medium
+    weight: -15
+    message: "Base rule"
+  shared_rule:
+    severity: low
+    weight: -5
+    message: "Shared rule from base"
+exceptions:
+  - pattern: "vendor/**"
+    ignore:
+      - base_rule

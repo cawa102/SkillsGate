@@ -1,0 +1,20 @@
+version: "1.1.0"
+name: "child-policy"
+extends: "./base-policy.yaml"
+thresholds:
+  warn: 75
+critical_block:
+  - child_critical_rule
+rules:
+  child_rule:
+    severity: high
+    weight: -25
+    message: "Child rule"
+  shared_rule:
+    severity: high
+    weight: -20
+    message: "Overridden shared rule"
+exceptions:
+  - pattern: "dist/**"
+    ignore:
+      - child_rule

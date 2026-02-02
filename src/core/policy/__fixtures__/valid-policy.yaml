@@ -1,0 +1,23 @@
+version: "1.0.0"
+name: "test-policy"
+description: "A test policy for unit tests"
+thresholds:
+  block: 40
+  warn: 70
+critical_block:
+  - secret_aws_key
+rules:
+  secret_aws_key:
+    severity: critical
+    weight: -50
+    message: "AWS credentials detected"
+  dangerous_eval:
+    severity: high
+    weight: -30
+    message: "eval() usage detected"
+    enabled: true
+exceptions:
+  - pattern: "test/**/*.ts"
+    ignore:
+      - secret_aws_key
+    reason: "Test files may contain mock secrets"

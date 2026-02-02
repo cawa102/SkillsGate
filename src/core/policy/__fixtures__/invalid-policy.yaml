@@ -1,0 +1,6 @@
+version: "invalid-version"
+name: ""
+thresholds:
+  block: 80
+  warn: 50
+rules: "not-an-object"
