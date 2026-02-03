@@ -1,9 +1,9 @@
 # SkillGate
 
+<h1 align="center">AI Agent Extension Security Gate</h1>
+
 <div align="center">
-
-**AI Agent Extension Security Gate**
-
+  
 *Pre-installation security scanner for Claude Code Skills, MCP servers, and agent extensions*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
