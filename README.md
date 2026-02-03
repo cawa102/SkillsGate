@@ -17,7 +17,7 @@
 
 ## The Problem
 
-AI agent extensions (Skills, MCP servers, plugins) are rapidly growing, but they're not just configuration files—they're **executable code running in your local environment**.
+AI agent Skills are rapidly growing, but they're not just configuration files—they're **executable code running in your local environment**.
 
 Your machine contains:
 - API keys (OpenAI, AWS, GitHub, etc.)
@@ -43,7 +43,7 @@ SkillGate acts as a **security gate before installation**, blocking dangerous Sk
 | **Semgrep** | Static analysis | No Skill-specific attack pattern rules |
 | **npm audit** | Package vulnerabilities | Dependencies only. No postinstall auto-execution detection |
 
-### SkillGate's Approach
+#### SkillGate's Approach
 
 ```
 Traditional tools: "Detect and report" → Human decides → Risk of oversight
@@ -140,8 +140,6 @@ rules:
   "timestamp": "2026-02-02T12:00:00Z"
 }
 ```
-
-Same input + Same policy = **Always same result** (reproducibility guaranteed)
 
 ---
 
@@ -241,61 +239,6 @@ $ sg scan ./malicious-skill
 
 BLOCKED: 2 finding(s) from 2 rule(s). Score: 25/100
   - Critical block rules triggered: skill_rm_rf_root, skill_curl_bash
-```
-
----
-
-## Architecture
-
-```
-                    sg scan <source>
-                          │
-                          ▼
-            ┌─────────────────────────┐
-            │  Source Type Detection  │
-            │  (git / archive / local)│
-            └─────────────────────────┘
-                          │
-                          ▼
-            ┌─────────────────────────┐
-            │       Ingestor          │
-            │  • Clone/Extract/Read   │
-            │  • Hash computation     │
-            │  • Commit SHA recording │
-            └─────────────────────────┘
-                          │
-                          ▼
-    ┌─────────────────────────────────────────┐
-    │     Scanner Orchestrator (Parallel)     │
-    │  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
-    │  │ Secret  │ │ Static  │ │  Skill  │   │
-    │  └─────────┘ └─────────┘ └─────────┘   │
-    │  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
-    │  │Entrypnt │ │  Deps   │ │ CI Risk │   │
-    │  └─────────┘ └─────────┘ └─────────┘   │
-    └─────────────────────────────────────────┘
-                          │
-                          ▼
-            ┌─────────────────────────┐
-            │     Policy Engine       │
-            │  • Score calculation    │
-            │  • Rule matching        │
-            │  • Threshold evaluation │
-            └─────────────────────────┘
-                          │
-                          ▼
-            ┌─────────────────────────┐
-            │       Enforcer          │
-            │  ALLOW / BLOCK / QUAR   │
-            └─────────────────────────┘
-                          │
-                          ▼
-            ┌─────────────────────────┐
-            │       Reporter          │
-            │  (JSON / Markdown)      │
-            │  • Secret masking       │
-            │  • Audit trail          │
-            └─────────────────────────┘
 ```
 
 ---
